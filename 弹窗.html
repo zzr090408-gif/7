@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>动态弹出窗口效果</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#EC4899',
+            accent: '#8B5CF6',
+            neutral: '#1F2937',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .window-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.1);
+      }
+      .window-appear {
+        animation: appear 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      }
+      .text-fade {
+        animation: fade 0.4s ease-in-out;
+      }
+    }
+    
+    @keyframes appear {
+      from { opacity: 0; transform: scale(0.3); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen overflow-hidden">
+  <div id="window-container" class="relative w-full h-screen"></div>
+
+  <script>
+    // 关心女生的文案库
+    const texts = [
+      "早休息呀",
+      "多喝水哦",
+      "别熬夜啦",
+      "要开心呀",
+      "注意保暖",
+      "笑一笑呀",
+      "别太累了",
+      "好好吃饭",
+      "爱你哟",
+      "加油呀",
+      "想你啦",
+      "开心点呀",
+      "别着凉了",
+      "放松一下",
+      "你很棒呀",
+      "休息一下",
+      "别生气啦",
+      "么么哒",
+      "有我呢",
+      "天凉加衣呀",
+      "吃点甜的吧",
+      "别饿肚子啦",
+      "睡个好觉呀",
+      "累了告诉我",
+      "出门带伞呀",
+      "少玩手机呀",
+      "记得加餐哦",
+      "心情要好呀",
+      "我在呢别怕"
+    ];
+    
+    // 颜色库
+    const colors = [
+      'bg-blue-100 text-blue-800 border-blue-200',
+      'bg-pink-100 text-pink-800 border-pink-200',
+      'bg-purple-100 text-purple-800 border-purple-200',
+      'bg-green-100 text-green-800 border-green-200',
+      'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'bg-red-100 text-red-800 border-red-200',
+      'bg-indigo-100 text-indigo-800 border-indigo-200',
+      'bg-teal-100 text-teal-800 border-teal-200'
+    ];
+    
+    const container = document.getElementById('window-container');
+    let windows = [];
+    const MAX_WINDOWS = 90;
+    
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    
+    function createWindow() {
+      const width = randomInt(160, 260);
+      const height = randomInt(70, 130);
+      
+      const maxX = window.innerWidth - width;
+      const maxY = window.innerHeight - height;
+      
+      const x = randomInt(0, maxX);
+      const y = randomInt(0, maxY);
+      
+      const windowEl = document.createElement('div');
+      const colorClass = randomChoice(colors);
+      
+      windowEl.className = `absolute rounded-lg border p-4 window-shadow window-appear ${colorClass}`;
+      windowEl.style.width = `${width}px`;
+      windowEl.style.height = `${height}px`;
+      windowEl.style.left = `${x}px`;
+      windowEl.style.top = `${y}px`;
+      windowEl.style.zIndex = windows.length + 1;
+      
+      const textEl = document.createElement('div');
+      textEl.className = 'h-full flex items-center justify-center text-center font-medium text-fade';
+      textEl.textContent = randomChoice(texts);
+      windowEl.appendChild(textEl);
+      
+      container.appendChild(windowEl);
+      windows.push({
+        element: windowEl,
+        textElement: textEl,
+        lastUpdated: Date.now()
+      });
+      
+      if (windows.length > MAX_WINDOWS) {
+        const oldestWindow = windows.shift();
+        oldestWindow.element.style.opacity = '0';
+        setTimeout(() => {
+          container.removeChild(oldestWindow.element);
+        }, 200);
+      }
+    }
+    
+    function updateWindowTexts() {
+      const now = Date.now();
+      
+      windows.forEach(win => {
+        if (now - win.lastUpdated >= 3000) {
+          win.textElement.textContent = randomChoice(texts);
+          win.textElement.classList.remove('text-fade');
+          void win.textElement.offsetWidth;
+          win.textElement.classList.add('text-fade');
+          win.lastUpdated = now;
+        }
+      });
+    }
+    
+    function initialBurst() {
+      const totalWindows = 70;
+      const interval = 25;
+      
+      for (let i = 0; i < totalWindows; i++) {
+        setTimeout(createWindow, i * interval);
+      }
+    }
+    
+    initialBurst();
+    
+    setTimeout(() => {
+      setInterval(createWindow, 25);
+    }, 2000);
+    
+    setInterval(updateWindowTexts, 100);
+  </script>
+</body>
+</html>
